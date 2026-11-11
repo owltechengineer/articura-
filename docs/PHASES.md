@@ -22,10 +22,13 @@
 
 ## Fase 3 — Dashboard MVP
 
+- [x] Configurazione Preventivi (listino da dashboard)
+- [x] Configuratore pubblico `/servizi` da database
+- [x] Snapshot prezzi storici sulle richieste
 - CRM kanban + tabella + CSV import
 - Clienti (scheda completa)
 - Progetti (kanban / lista / timeline)
-- Preventivi (voci, PDF, email)
+- Preventivi PDF/email
 - Task (oggi / settimana / kanban)
 
 ## Fase 4 — Controllo gestionale

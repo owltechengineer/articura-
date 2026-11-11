@@ -1,9 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 
 import type { Database } from "@/types/database";
 
 export async function createClient() {
+  // Supabase SSR may call Math.random() internally. With Cache Components,
+  // instant=false does not clear that prerender error — wait for the request.
+  await connection();
   const cookieStore = await cookies();
 
   return createServerClient<Database>(

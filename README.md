@@ -19,7 +19,7 @@ Apri [http://localhost:3000](http://localhost:3000).
 1. Crea un progetto su [supabase.com](https://supabase.com)
 2. Copia URL e anon key in `.env.local`
 3. Aggiungi la **service role key** solo in `.env.local` / Vercel (mai nel client)
-4. Esegui la migrazione `supabase/migrations/20261104000001_initial_schema.sql` nel SQL Editor
+4. Esegui in ordine nel SQL Editor: `APPLY_NOW_initial_schema.sql` e `APPLY_NOW_catalog_pricing.sql`
 5. Crea il primo utente da **Authentication → Users → Invite**
 6. In `profiles`, imposta `role = 'admin'` per il tuo account
 

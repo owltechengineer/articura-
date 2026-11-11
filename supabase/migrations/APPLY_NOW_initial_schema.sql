@@ -1,3 +1,6 @@
+-- RUN THIS in Supabase SQL Editor (safe if enums already exist)
+-- Fixed order: profiles table before helper functions
+
 -- ARTICURA — initial schema, RLS, storage policies
 -- Apply via Supabase SQL editor or `supabase db push`
 
@@ -7,15 +10,24 @@ create extension if not exists "pgcrypto";
 -- Enums
 -- ---------------------------------------------------------------------------
 
-create type public.user_role as enum ('admin', 'collaborator');
+DO $$ BEGIN
+  create type public.user_role as enum ('admin', 'collaborator');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-create type public.organization_status as enum (
+DO $$ BEGIN
+  create type public.organization_status as enum (
   'prospect',
   'active_client',
   'former_client'
 );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-create type public.opportunity_stage as enum (
+DO $$ BEGIN
+  create type public.opportunity_stage as enum (
   'prospect_identified',
   'to_contact',
   'first_contact',
@@ -26,8 +38,12 @@ create type public.opportunity_stage as enum (
   'won',
   'lost'
 );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-create type public.project_status as enum (
+DO $$ BEGIN
+  create type public.project_status as enum (
   'to_plan',
   'analysis',
   'design',
@@ -38,34 +54,54 @@ create type public.project_status as enum (
   'maintenance',
   'archived'
 );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-create type public.quote_status as enum (
+DO $$ BEGIN
+  create type public.quote_status as enum (
   'draft',
   'sent',
   'accepted',
   'rejected',
   'expired'
 );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-create type public.task_priority as enum ('low', 'medium', 'high', 'urgent');
+DO $$ BEGIN
+  create type public.task_priority as enum ('low', 'medium', 'high', 'urgent');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-create type public.task_status as enum (
+DO $$ BEGIN
+  create type public.task_status as enum (
   'todo',
   'in_progress',
   'blocked',
   'done',
   'cancelled'
 );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-create type public.financial_kind as enum (
+DO $$ BEGIN
+  create type public.financial_kind as enum (
   'revenue_projected',
   'revenue_invoiced',
   'revenue_collected',
   'cost',
   'recurring_expense'
 );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-create type public.document_category as enum (
+DO $$ BEGIN
+  create type public.document_category as enum (
   'contract',
   'quote',
   'brief',
@@ -74,6 +110,9 @@ create type public.document_category as enum (
   'project',
   'other'
 );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
 -- ---------------------------------------------------------------------------
 -- Helpers
@@ -88,6 +127,19 @@ begin
   return new;
 end;
 $$;
+
+-- Profiles must exist before role helper functions
+create table public.profiles (
+  id uuid primary key references auth.users (id) on delete cascade,
+  email text not null unique,
+  full_name text,
+  role public.user_role not null default 'collaborator',
+  avatar_url text,
+  is_active boolean not null default true,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
 
 create or replace function public.current_user_role()
 returns public.user_role
@@ -149,6 +201,7 @@ begin
 end;
 $$;
 
+drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
@@ -156,17 +209,6 @@ create trigger on_auth_user_created
 -- ---------------------------------------------------------------------------
 -- Tables
 -- ---------------------------------------------------------------------------
-
-create table public.profiles (
-  id uuid primary key references auth.users (id) on delete cascade,
-  email text not null unique,
-  full_name text,
-  role public.user_role not null default 'collaborator',
-  avatar_url text,
-  is_active boolean not null default true,
-  created_at timestamptz not null default timezone('utc', now()),
-  updated_at timestamptz not null default timezone('utc', now())
-);
 
 create table public.organizations (
   id uuid primary key default gen_random_uuid(),

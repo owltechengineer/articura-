@@ -1,19 +1,37 @@
-import { PageHero } from "@/components/marketing/page-hero";
 import type { Metadata } from "next";
+
+import { PageHero } from "@/components/marketing/page-hero";
+import { ServiceConfigurator } from "@/components/marketing/service-configurator";
+import { EmptyState } from "@/components/ui/empty-state";
+import { loadCatalogSnapshot } from "@/lib/pricing/catalog";
 
 export const metadata: Metadata = {
   title: "Servizi",
-  description: "Quattro ambiti di intervento per digitalizzare presenza, processi e operazioni.",
+  description:
+    "Configura siti web, software, CRM e automazioni. Prezzi dal listino Articura aggiornato in tempo reale.",
 };
 
-export default function Page() {
+export const instant = false;
+
+export default async function ServiziPage() {
+  const catalog = await loadCatalogSnapshot({ includeDrafts: false });
+
   return (
     <>
-      <PageHero title="Servizi" description="Quattro ambiti di intervento per digitalizzare presenza, processi e operazioni." />
+      <PageHero
+        eyebrow="Servizi"
+        title="Configura la tua soluzione"
+        description="Seleziona servizi o pacchetti, aggiungi funzionalità compatibili e richiedi un preventivo. I prezzi sono gestiti dalla dashboard Articura."
+      />
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-        <div className="rounded-xl border border-dashed border-border bg-background-secondary/60 p-8 text-sm text-foreground-muted">
-          Contenuto di dettaglio in arrivo nella Fase 2. La struttura della pagina è già attiva e SEO-ready.
-        </div>
+        {!catalog ? (
+          <EmptyState
+            title="Listino in configurazione"
+            description="Il configuratore sarà disponibile dopo il collegamento al database e la pubblicazione dei servizi."
+          />
+        ) : (
+          <ServiceConfigurator catalog={catalog} />
+        )}
       </section>
     </>
   );
