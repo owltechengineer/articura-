@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { PageHero } from "@/components/marketing/page-hero";
+import { Reveal } from "@/components/marketing/reveal";
+import { Section, SectionHeading } from "@/components/marketing/section";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
@@ -43,33 +45,43 @@ export default function SettoriPage() {
         description="Soluzioni per metalmeccanico, manifattura, artigianato e servizi B2B, con attenzione alle imprese della Lombardia."
       />
 
-      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-        <div className="overflow-hidden rounded-xl border border-border">
+      <Section>
+        <Reveal className="relative aspect-[16/8] overflow-hidden">
           <Image
             src="/marketing/settori-collage.png"
             alt="Lavorazioni industriali, artigianato del legno, progettazione CAD e saldatura"
-            width={1024}
-            height={576}
-            className="h-auto w-full object-cover"
+            fill
+            className="object-cover"
             priority
             sizes="(max-width: 1152px) 100vw, 1152px"
           />
-        </div>
+        </Reveal>
+      </Section>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-2">
-          {SECTORS.map((sector) => (
-            <article
-              key={sector.title}
-              className="rounded-xl border border-border bg-background p-6"
-            >
-              <h2 className="text-lg font-semibold">{sector.title}</h2>
-              <p className="mt-3 text-sm leading-relaxed text-foreground-muted">
-                {sector.description}
-              </p>
-            </article>
+      <Section tone="muted">
+        <SectionHeading
+          title="Settori in cui interveniamo"
+          description="Stesso metodo, linguaggio diverso per ogni contesto produttivo."
+        />
+        <div className="mt-12 divide-y divide-border border-y border-border">
+          {SECTORS.map((sector, index) => (
+            <Reveal key={sector.title} delay={index * 0.06} y={16}>
+              <article className="grid gap-3 py-8 sm:grid-cols-[8rem_1fr] sm:gap-10">
+                <p className="font-display text-sm tracking-[0.18em] text-accent">
+                  0{index + 1}
+                </p>
+                <div>
+                  <h2 className="font-display text-xl font-semibold">
+                    {sector.title}
+                  </h2>
+                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-foreground-muted sm:text-base">
+                    {sector.description}
+                  </p>
+                </div>
+              </article>
+            </Reveal>
           ))}
         </div>
-
         <div className="mt-12 flex flex-col gap-3 sm:flex-row">
           <Button asChild>
             <Link href="/richiedi-preventivo">Parliamo del tuo progetto</Link>
@@ -78,7 +90,7 @@ export default function SettoriPage() {
             <Link href="/servizi">Scopri i servizi</Link>
           </Button>
         </div>
-      </section>
+      </Section>
     </>
   );
 }

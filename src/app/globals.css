@@ -1,13 +1,14 @@
 @import "tailwindcss";
 
-/* Design tokens — light (public + dashboard default) */
+/* Design tokens — light (public + dashboard default)
+   Direction: industrial steel + articura blue. Not purple, not cream. */
 :root {
   --background: #ffffff;
-  --background-secondary: #f7f8fa;
-  --foreground: #111827;
-  --foreground-muted: #6b7280;
-  --border: #e5e7eb;
-  --accent: #2563eb;
+  --background-secondary: #f3f6fa;
+  --foreground: #0f172a;
+  --foreground-muted: #64748b;
+  --border: #e2e8f0;
+  --accent: #1d4ed8;
   --accent-foreground: #ffffff;
   --accent-muted: #eff6ff;
   --destructive: #dc2626;
@@ -15,8 +16,8 @@
   --success: #059669;
   --warning: #d97706;
   --card: #ffffff;
-  --card-foreground: #111827;
-  --ring: #2563eb;
+  --card-foreground: #0f172a;
+  --ring: #1d4ed8;
   --sidebar: #0f172a;
   --sidebar-foreground: #e2e8f0;
   --sidebar-muted: #94a3b8;
@@ -72,8 +73,9 @@
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-muted: var(--sidebar-muted);
   --color-sidebar-accent: var(--sidebar-accent);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-syne);
+  --font-mono: var(--font-jetbrains-mono);
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
@@ -91,8 +93,21 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
   text-rendering: optimizeLegibility;
+}
+
+.font-display {
+  font-family: var(--font-syne), var(--font-dm-sans), ui-sans-serif, system-ui,
+    sans-serif;
+}
+
+.public-grid-fade {
+  background-image:
+    linear-gradient(to right, rgb(15 23 42 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(15 23 42 / 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at center, black 25%, transparent 75%);
 }
 
 ::selection {
@@ -106,4 +121,18 @@ body {
 .focus-ring:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

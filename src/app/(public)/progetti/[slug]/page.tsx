@@ -3,6 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 
+import { PageHero } from "@/components/marketing/page-hero";
+import { Reveal } from "@/components/marketing/reveal";
+import { Section, SectionHeading } from "@/components/marketing/section";
 import { Button } from "@/components/ui/button";
 import { PROJECTS, getProjectBySlug } from "@/lib/projects";
 
@@ -37,69 +40,71 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   return (
     <>
-      <section className="border-b border-border bg-background-secondary">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+      <PageHero
+        eyebrow={project.type}
+        title={project.name}
+        description={project.summary}
+      >
+        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-white/65">
+          <span>{project.sector}</span>
           <Link
             href="/progetti"
-            className="inline-flex items-center gap-2 text-sm text-foreground-muted hover:text-foreground"
+            className="inline-flex items-center gap-2 text-white/75 hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
             Tutti i progetti
           </Link>
-          <p className="mt-6 text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-            {project.type}
-          </p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-            {project.name}
-          </h1>
-          <p className="mt-2 text-sm text-foreground-muted">{project.sector}</p>
-          <p className="mt-5 max-w-2xl text-base leading-relaxed text-foreground-muted">
-            {project.summary}
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild>
-              <a href={project.url} target="_blank" rel="noopener noreferrer">
-                Visita il sito
-                <ArrowUpRight className="h-4 w-4" />
-              </a>
-            </Button>
-            <Button asChild variant="secondary">
-              <Link href="/richiedi-preventivo">Parliamo del tuo progetto</Link>
-            </Button>
-          </div>
         </div>
-      </section>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Button asChild>
+            <a href={project.url} target="_blank" rel="noopener noreferrer">
+              Visita il sito
+              <ArrowUpRight className="h-4 w-4" />
+            </a>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link href="/richiedi-preventivo">Parliamo del tuo progetto</Link>
+          </Button>
+        </div>
+      </PageHero>
 
-      <section className="mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-2">
-        <article className="rounded-xl border border-border bg-background p-6">
-          <h2 className="text-lg font-semibold">Sfida</h2>
-          <p className="mt-3 text-sm leading-relaxed text-foreground-muted">
-            {project.challenge}
-          </p>
-        </article>
-        <article className="rounded-xl border border-border bg-background p-6">
-          <h2 className="text-lg font-semibold">Soluzione</h2>
-          <p className="mt-3 text-sm leading-relaxed text-foreground-muted">
-            {project.solution}
-          </p>
-        </article>
-      </section>
+      <Section>
+        <div className="grid gap-10 lg:grid-cols-2">
+          <Reveal>
+            <SectionHeading title="Sfida" />
+            <p className="mt-5 text-sm leading-relaxed text-foreground-muted sm:text-base">
+              {project.challenge}
+            </p>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <SectionHeading title="Soluzione" />
+            <p className="mt-5 text-sm leading-relaxed text-foreground-muted sm:text-base">
+              {project.solution}
+            </p>
+          </Reveal>
+        </div>
+      </Section>
 
-      <section className="border-t border-border bg-background-secondary">
-        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-          <h2 className="text-lg font-semibold">Cosa abbiamo realizzato</h2>
-          <ul className="mt-6 grid gap-3 sm:grid-cols-3">
-            {project.deliverables.map((item) => (
-              <li
-                key={item}
-                className="rounded-xl border border-border bg-background px-4 py-5 text-sm"
-              >
-                {item}
+      <Section tone="muted">
+        <SectionHeading
+          title="Cosa abbiamo realizzato"
+          description="Deliverable concreti, misurabili sul progetto."
+        />
+        <ul className="mt-10 divide-y divide-border border-y border-border">
+          {project.deliverables.map((item, index) => (
+            <Reveal key={item} delay={index * 0.05} y={12}>
+              <li className="grid gap-3 py-6 sm:grid-cols-[4rem_1fr]">
+                <p className="font-display text-sm tracking-[0.18em] text-accent">
+                  0{index + 1}
+                </p>
+                <p className="text-sm text-foreground-muted sm:text-base">
+                  {item}
+                </p>
               </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+            </Reveal>
+          ))}
+        </ul>
+      </Section>
     </>
   );
 }

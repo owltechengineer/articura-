@@ -13,7 +13,7 @@ export function ProjectCard({ project, className }: ProjectCardProps) {
   return (
     <article
       className={cn(
-        "group flex h-full flex-col rounded-xl border border-border bg-background p-6 transition-colors hover:border-accent/40",
+        "group flex h-full flex-col border-t border-border bg-transparent pt-6 transition-colors",
         className,
       )}
     >
@@ -22,7 +22,7 @@ export function ProjectCard({ project, className }: ProjectCardProps) {
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">
             {project.type}
           </p>
-          <h3 className="mt-3 text-xl font-semibold tracking-tight">
+          <h3 className="mt-3 font-display text-xl font-semibold tracking-tight">
             {project.name}
           </h3>
           <p className="mt-1 text-sm text-foreground-muted">{project.sector}</p>
@@ -31,7 +31,7 @@ export function ProjectCard({ project, className }: ProjectCardProps) {
           href={project.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-foreground-muted transition-colors hover:border-accent hover:text-accent"
+          className="inline-flex h-9 w-9 items-center justify-center border border-border text-foreground-muted transition-colors hover:border-accent hover:text-accent"
           aria-label={`Apri ${project.name}`}
         >
           <ArrowUpRight className="h-4 w-4" />
@@ -46,7 +46,7 @@ export function ProjectCard({ project, className }: ProjectCardProps) {
         {project.deliverables.slice(0, 3).map((item) => (
           <span
             key={item}
-            className="rounded-md border border-border bg-background-secondary px-2.5 py-1 text-xs text-foreground-muted"
+            className="border border-border bg-background-secondary/70 px-2.5 py-1 text-xs text-foreground-muted"
           >
             {item}
           </span>

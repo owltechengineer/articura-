@@ -34,8 +34,33 @@ export const quoteRequestContactSchema = z.object({
   contactName: z.string().trim().min(2).max(120),
   contactEmail: z.string().trim().email(),
   contactPhone: z.string().trim().max(40).optional().nullable(),
-  companyName: z.string().trim().max(160).optional().nullable(),
+  contactRole: z.string().trim().max(80).optional().nullable(),
+  companyName: z.string().trim().min(2).max(160),
+  vatNumber: z.string().trim().max(32).optional().nullable(),
+  website: z.string().trim().max(300).optional().nullable(),
+  city: z.string().trim().max(120).optional().nullable(),
+  province: z.string().trim().max(10).optional().nullable(),
+  sector: z.string().trim().max(120).optional().nullable(),
+  companySize: z
+    .enum(["1-5", "6-10", "11-20", "21-50", "50+", "non_so"])
+    .optional()
+    .nullable(),
+  timeline: z
+    .enum([
+      "subito",
+      "1_3_mesi",
+      "3_6_mesi",
+      "oltre_6_mesi",
+      "solo_informazioni",
+    ])
+    .optional()
+    .nullable(),
+  currentTools: z.string().trim().max(500).optional().nullable(),
   notes: z.string().trim().max(4000).optional().nullable(),
+  privacyAccepted: z.boolean().refine((v) => v === true, {
+    message: "Devi accettare la privacy policy.",
+  }),
+  marketingOptIn: z.boolean().default(false),
 });
 
 export const submitQuoteRequestSchema = z.object({

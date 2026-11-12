@@ -90,45 +90,93 @@ export async function submitQuoteRequestAction(
     };
   }
 
+  if (!parsed.data.contact.privacyAccepted) {
+    return { ok: false, error: "Devi accettare la privacy policy." };
+  }
+
   const supabase = await createClient();
   const requestNumber = buildRequestNumber();
   const contact = parsed.data.contact;
+  const emptyToNull = (value: string | null | undefined) => {
+    if (value == null) return null;
+    const trimmed = value.trim();
+    return trimmed === "" ? null : trimmed;
+  };
 
   // Create/find prospect organization (best-effort, non blocking on failure)
   let organizationId: string | null = null;
   let opportunityId: string | null = null;
 
-  if (contact.companyName) {
-    const { data: org } = await supabase
-      .from("organizations")
+  const { data: org } = await supabase
+    .from("organizations")
+    .insert({
+      legal_name: contact.companyName,
+      email: contact.contactEmail,
+      phone: emptyToNull(contact.contactPhone),
+      website: emptyToNull(contact.website),
+      vat_number: emptyToNull(contact.vatNumber),
+      city: emptyToNull(contact.city),
+      province: emptyToNull(contact.province),
+      sector: emptyToNull(contact.sector),
+      company_size_estimate: contact.companySize ?? null,
+      source: "configurator",
+      qualification_status: "new",
+      status: "prospect",
+      notes: [
+        `Lead da configuratore ${requestNumber}`,
+        contact.contactRole ? `Ruolo: ${contact.contactRole}` : null,
+        contact.timeline ? `Tempistiche: ${contact.timeline}` : null,
+        contact.currentTools
+          ? `Strumenti attuali: ${contact.currentTools}`
+          : null,
+        contact.notes,
+        contact.marketingOptIn
+          ? "Marketing opt-in: sì (esplicito)"
+          : "Marketing opt-in: no",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    })
+    .select("id")
+    .maybeSingle();
+  organizationId = org?.id ?? null;
+
+  if (organizationId) {
+    const { data: opportunity } = await supabase
+      .from("opportunities")
       .insert({
-        legal_name: contact.companyName,
-        email: contact.contactEmail,
-        phone: contact.contactPhone,
-        status: "prospect",
-        notes: `Lead da configuratore preventivi ${requestNumber}`,
+        organization_id: organizationId,
+        title: `Richiesta ${requestNumber}`,
+        stage: "quote_sent",
+        estimated_value: pricing.hasOnRequestItems
+          ? null
+          : pricing.totalOneTimeCents / 100,
+        notes: contact.notes,
       })
       .select("id")
       .maybeSingle();
-    organizationId = org?.id ?? null;
+    opportunityId = opportunity?.id ?? null;
 
-    if (organizationId) {
-      const { data: opportunity } = await supabase
-        .from("opportunities")
-        .insert({
-          organization_id: organizationId,
-          title: `Richiesta ${requestNumber}`,
-          stage: "quote_sent",
-          estimated_value: pricing.hasOnRequestItems
-            ? null
-            : pricing.totalOneTimeCents / 100,
-          notes: contact.notes,
-        })
-        .select("id")
-        .maybeSingle();
-      opportunityId = opportunity?.id ?? null;
-    }
+    await supabase.from("organization_interactions").insert({
+      organization_id: organizationId,
+      type: "quote_request",
+      summary: `Preventivo ${requestNumber} inviato dal configuratore.`,
+    });
   }
+
+  const contactDetails = {
+    contactRole: emptyToNull(contact.contactRole),
+    vatNumber: emptyToNull(contact.vatNumber),
+    website: emptyToNull(contact.website),
+    city: emptyToNull(contact.city),
+    province: emptyToNull(contact.province),
+    sector: emptyToNull(contact.sector),
+    companySize: contact.companySize ?? null,
+    timeline: contact.timeline ?? null,
+    currentTools: emptyToNull(contact.currentTools),
+    privacyAccepted: true,
+    marketingOptIn: contact.marketingOptIn === true,
+  };
 
   const { data: request, error } = await supabase
     .from("quote_requests")
@@ -136,9 +184,10 @@ export async function submitQuoteRequestAction(
       request_number: requestNumber,
       contact_name: contact.contactName,
       contact_email: contact.contactEmail,
-      contact_phone: contact.contactPhone ?? null,
-      company_name: contact.companyName ?? null,
-      notes: contact.notes ?? null,
+      contact_phone: emptyToNull(contact.contactPhone),
+      company_name: contact.companyName,
+      notes: emptyToNull(contact.notes),
+      contact_details: contactDetails,
       selection: parsed.data.selection,
       pricing_snapshot: {
         catalogVersion: catalog.version,
@@ -161,7 +210,13 @@ export async function submitQuoteRequestAction(
     .single();
 
   if (error || !request) {
-    return { ok: false, error: error?.message ?? "Impossibile salvare la richiesta." };
+    return {
+      ok: false,
+      error:
+        error?.message?.includes("contact_details") || error?.code === "42703"
+          ? "Esegui APPLY_NOW_leads.sql su Supabase, poi riprova."
+          : (error?.message ?? "Impossibile salvare la richiesta."),
+    };
   }
 
   const items = pricing.lines

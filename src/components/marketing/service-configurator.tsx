@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 
 import { submitQuoteRequestAction } from "@/app/actions/quote-requests";
@@ -18,6 +19,23 @@ type Props = {
   previewMode?: boolean;
 };
 
+const COMPANY_SIZES = [
+  { value: "1-5", label: "1–5 addetti" },
+  { value: "6-10", label: "6–10 addetti" },
+  { value: "11-20", label: "11–20 addetti" },
+  { value: "21-50", label: "21–50 addetti" },
+  { value: "50+", label: "Oltre 50" },
+  { value: "non_so", label: "Non so" },
+] as const;
+
+const TIMELINES = [
+  { value: "subito", label: "Il prima possibile" },
+  { value: "1_3_mesi", label: "1–3 mesi" },
+  { value: "3_6_mesi", label: "3–6 mesi" },
+  { value: "oltre_6_mesi", label: "Oltre 6 mesi" },
+  { value: "solo_informazioni", label: "Solo informazioni" },
+] as const;
+
 export function ServiceConfigurator({ catalog, previewMode = false }: Props) {
   const [pending, startTransition] = useTransition();
   const [mode, setMode] = useState<"service" | "package">("service");
@@ -29,8 +47,19 @@ export function ServiceConfigurator({ catalog, previewMode = false }: Props) {
     contactName: "",
     contactEmail: "",
     contactPhone: "",
+    contactRole: "",
     companyName: "",
+    vatNumber: "",
+    website: "",
+    city: "",
+    province: "",
+    sector: "",
+    companySize: "" as "" | (typeof COMPANY_SIZES)[number]["value"],
+    timeline: "" as "" | (typeof TIMELINES)[number]["value"],
+    currentTools: "",
     notes: "",
+    privacyAccepted: false,
+    marketingOptIn: false,
   });
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +137,15 @@ export function ServiceConfigurator({ catalog, previewMode = false }: Props) {
         contact: {
           ...contact,
           contactPhone: contact.contactPhone || null,
-          companyName: contact.companyName || null,
+          contactRole: contact.contactRole || null,
+          vatNumber: contact.vatNumber || null,
+          website: contact.website || null,
+          city: contact.city || null,
+          province: contact.province || null,
+          sector: contact.sector || null,
+          companySize: contact.companySize || null,
+          timeline: contact.timeline || null,
+          currentTools: contact.currentTools || null,
           notes: contact.notes || null,
         },
       });
@@ -124,7 +161,7 @@ export function ServiceConfigurator({ catalog, previewMode = false }: Props) {
 
   if (catalog.services.length === 0 && catalog.packages.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border bg-background-secondary/60 p-8 text-sm text-foreground-muted">
+      <div className="border border-dashed border-border bg-background-secondary/60 p-8 text-sm text-foreground-muted">
         Nessun servizio pubblicato. Configura e pubblica il listino dalla
         dashboard amministrativa.
       </div>
@@ -132,10 +169,10 @@ export function ServiceConfigurator({ catalog, previewMode = false }: Props) {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+    <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr]">
       <div className="space-y-6">
         {previewMode ? (
-          <div className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-warning">
+          <div className="border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-warning">
             Anteprima amministrativa — include bozze se caricate lato server.
           </div>
         ) : null}
@@ -171,7 +208,7 @@ export function ServiceConfigurator({ catalog, previewMode = false }: Props) {
                   key={service.id}
                   type="button"
                   onClick={() => setServiceId(service.id)}
-                  className={`rounded-xl border p-4 text-left transition-colors ${
+                  className={`border p-4 text-left transition-colors ${
                     selected
                       ? "border-accent bg-accent-muted"
                       : "border-border bg-background hover:border-accent/40"
@@ -182,7 +219,9 @@ export function ServiceConfigurator({ catalog, previewMode = false }: Props) {
                       <p className="text-xs uppercase tracking-[0.14em] text-foreground-muted">
                         {category?.name}
                       </p>
-                      <h3 className="mt-1 font-semibold">{service.name}</h3>
+                      <h3 className="mt-1 font-display font-semibold">
+                        {service.name}
+                      </h3>
                       {service.description ? (
                         <p className="mt-2 text-sm text-foreground-muted">
                           {service.description}
@@ -208,7 +247,7 @@ export function ServiceConfigurator({ catalog, previewMode = false }: Props) {
                   key={pkg.id}
                   type="button"
                   onClick={() => setPackageId(pkg.id)}
-                  className={`rounded-xl border p-4 text-left transition-colors ${
+                  className={`border p-4 text-left transition-colors ${
                     selected
                       ? "border-accent bg-accent-muted"
                       : "border-border bg-background hover:border-accent/40"
@@ -216,7 +255,7 @@ export function ServiceConfigurator({ catalog, previewMode = false }: Props) {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="font-semibold">{pkg.name}</h3>
+                      <h3 className="font-display font-semibold">{pkg.name}</h3>
                       {pkg.description ? (
                         <p className="mt-2 text-sm text-foreground-muted">
                           {pkg.description}
@@ -244,14 +283,16 @@ export function ServiceConfigurator({ catalog, previewMode = false }: Props) {
 
         {visibleAddons.length > 0 ? (
           <div>
-            <h3 className="text-base font-semibold">Funzionalità aggiuntive</h3>
+            <h3 className="font-display text-base font-semibold">
+              Funzionalità aggiuntive
+            </h3>
             <div className="mt-3 grid gap-2">
               {visibleAddons.map((addon) => {
                 const qty = addonQty[addon.id] ?? 0;
                 return (
                   <div
                     key={addon.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-3 py-3"
+                    className="flex flex-wrap items-center justify-between gap-3 border border-border px-3 py-3"
                   >
                     <div>
                       <p className="text-sm font-medium">{addon.name}</p>
@@ -307,8 +348,10 @@ export function ServiceConfigurator({ catalog, previewMode = false }: Props) {
         </div>
       </div>
 
-      <aside className="h-fit rounded-xl border border-border bg-background p-5 lg:sticky lg:top-24">
-        <h3 className="text-base font-semibold">Stima preventivo</h3>
+      <aside className="h-fit border border-border bg-background p-5 lg:sticky lg:top-24">
+        <h3 className="font-display text-base font-semibold">
+          Stima preventivo
+        </h3>
         {pricing instanceof PricingError ? (
           <p className="mt-3 text-sm text-destructive">{pricing.message}</p>
         ) : pricing ? (
@@ -366,61 +409,229 @@ export function ServiceConfigurator({ catalog, previewMode = false }: Props) {
           </p>
         )}
 
-        <div className="mt-6 space-y-3 border-t border-border pt-4">
-          <div className="space-y-2">
-            <Label htmlFor="contactName">Nome</Label>
-            <Input
-              id="contactName"
-              value={contact.contactName}
-              onChange={(e) =>
-                setContact((p) => ({ ...p, contactName: e.target.value }))
-              }
-            />
+        <div className="mt-6 space-y-4 border-t border-border pt-4">
+          <p className="font-display text-sm font-semibold tracking-wide">
+            Dati per la richiesta
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Nome e cognome *">
+              <Input
+                required
+                value={contact.contactName}
+                onChange={(e) =>
+                  setContact((p) => ({ ...p, contactName: e.target.value }))
+                }
+              />
+            </Field>
+            <Field label="Ruolo">
+              <Input
+                value={contact.contactRole}
+                onChange={(e) =>
+                  setContact((p) => ({ ...p, contactRole: e.target.value }))
+                }
+                placeholder="Titolare, …"
+              />
+            </Field>
+            <Field label="Email *" className="sm:col-span-2">
+              <Input
+                required
+                type="email"
+                value={contact.contactEmail}
+                onChange={(e) =>
+                  setContact((p) => ({ ...p, contactEmail: e.target.value }))
+                }
+              />
+            </Field>
+            <Field label="Telefono">
+              <Input
+                value={contact.contactPhone}
+                onChange={(e) =>
+                  setContact((p) => ({ ...p, contactPhone: e.target.value }))
+                }
+              />
+            </Field>
+            <Field label="Azienda *">
+              <Input
+                required
+                value={contact.companyName}
+                onChange={(e) =>
+                  setContact((p) => ({ ...p, companyName: e.target.value }))
+                }
+              />
+            </Field>
+            <Field label="P. IVA">
+              <Input
+                value={contact.vatNumber}
+                onChange={(e) =>
+                  setContact((p) => ({ ...p, vatNumber: e.target.value }))
+                }
+              />
+            </Field>
+            <Field label="Settore">
+              <Input
+                value={contact.sector}
+                onChange={(e) =>
+                  setContact((p) => ({ ...p, sector: e.target.value }))
+                }
+              />
+            </Field>
+            <Field label="Dimensione">
+              <select
+                className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                value={contact.companySize}
+                onChange={(e) =>
+                  setContact((p) => ({
+                    ...p,
+                    companySize: e.target
+                      .value as (typeof contact)["companySize"],
+                  }))
+                }
+              >
+                <option value="">—</option>
+                {COMPANY_SIZES.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Comune">
+              <Input
+                value={contact.city}
+                onChange={(e) =>
+                  setContact((p) => ({ ...p, city: e.target.value }))
+                }
+              />
+            </Field>
+            <Field label="Provincia">
+              <Input
+                value={contact.province}
+                onChange={(e) =>
+                  setContact((p) => ({ ...p, province: e.target.value }))
+                }
+                maxLength={10}
+              />
+            </Field>
+            <Field label="Sito web" className="sm:col-span-2">
+              <Input
+                value={contact.website}
+                onChange={(e) =>
+                  setContact((p) => ({ ...p, website: e.target.value }))
+                }
+                placeholder="https://"
+              />
+            </Field>
+            <Field label="Tempistiche">
+              <select
+                className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                value={contact.timeline}
+                onChange={(e) =>
+                  setContact((p) => ({
+                    ...p,
+                    timeline: e.target.value as (typeof contact)["timeline"],
+                  }))
+                }
+              >
+                <option value="">—</option>
+                {TIMELINES.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Strumenti attuali">
+              <Input
+                value={contact.currentTools}
+                onChange={(e) =>
+                  setContact((p) => ({ ...p, currentTools: e.target.value }))
+                }
+                placeholder="Excel, gestionale, …"
+              />
+            </Field>
+            <Field label="Note / esigenze" className="sm:col-span-2">
+              <textarea
+                className="min-h-24 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                value={contact.notes}
+                onChange={(e) =>
+                  setContact((p) => ({ ...p, notes: e.target.value }))
+                }
+              />
+            </Field>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="contactEmail">Email</Label>
-            <Input
-              id="contactEmail"
-              type="email"
-              value={contact.contactEmail}
-              onChange={(e) =>
-                setContact((p) => ({ ...p, contactEmail: e.target.value }))
-              }
-            />
+
+          <div className="space-y-3 text-xs text-foreground-muted">
+            <label className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={contact.privacyAccepted}
+                onChange={(e) =>
+                  setContact((p) => ({
+                    ...p,
+                    privacyAccepted: e.target.checked,
+                  }))
+                }
+                required
+              />
+              <span>
+                Accetto la{" "}
+                <Link href="/privacy" className="text-accent hover:underline">
+                  privacy policy
+                </Link>{" "}
+                per questa richiesta. *
+              </span>
+            </label>
+            <label className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={contact.marketingOptIn}
+                onChange={(e) =>
+                  setContact((p) => ({
+                    ...p,
+                    marketingOptIn: e.target.checked,
+                  }))
+                }
+              />
+              <span>Consenso aggiornamenti commerciali (facoltativo).</span>
+            </label>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="companyName">Azienda</Label>
-            <Input
-              id="companyName"
-              value={contact.companyName}
-              onChange={(e) =>
-                setContact((p) => ({ ...p, companyName: e.target.value }))
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="notes">Note</Label>
-            <textarea
-              id="notes"
-              className="min-h-20 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-              value={contact.notes}
-              onChange={(e) =>
-                setContact((p) => ({ ...p, notes: e.target.value }))
-              }
-            />
-          </div>
+
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           {message ? <p className="text-sm text-success">{message}</p> : null}
           <Button
             type="button"
             className="w-full"
-            disabled={pending || pricing instanceof PricingError || !pricing}
+            disabled={
+              pending ||
+              pricing instanceof PricingError ||
+              !pricing ||
+              !contact.privacyAccepted
+            }
             onClick={submit}
           >
             {pending ? "Invio…" : "Invia richiesta preventivo"}
           </Button>
         </div>
       </aside>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`space-y-1.5 ${className ?? ""}`}>
+      <Label>{label}</Label>
+      {children}
     </div>
   );
 }

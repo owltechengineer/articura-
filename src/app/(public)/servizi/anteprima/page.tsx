@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { PageHero } from "@/components/marketing/page-hero";
+import { Section } from "@/components/marketing/section";
 import { ServiceConfigurator } from "@/components/marketing/service-configurator";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getSessionUser } from "@/lib/auth/session";
@@ -30,7 +31,7 @@ export default async function ConfiguratorPreviewPage() {
         title="Anteprima configuratore"
         description="Vista amministrativa del listino, comprese le bozze non ancora pubblicate."
       />
-      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+      <Section tone="muted">
         {!catalog ? (
           <EmptyState
             title="Catalogo non disponibile"
@@ -39,7 +40,7 @@ export default async function ConfiguratorPreviewPage() {
         ) : (
           <ServiceConfigurator catalog={catalog} previewMode />
         )}
-      </section>
+      </Section>
     </>
   );
 }
